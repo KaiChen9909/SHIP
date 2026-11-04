@@ -1,0 +1,45 @@
+# ---- Claude / AI assistant files ----
+.claude/
+CLAUDE.md
+CLAUDE.local.md
+.claude.json
+.mcp.json
+
+# ---- Secrets ----
+.env
+.env.*
+
+# ---- LLM response cache & test caches ----
+.cache/
+cache/
+.llm_cache/
+*.sqlite
+*.sqlite3
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.pytype/
+.hypothesis/
+.coverage
+htmlcov/
+
+# ---- Run outputs / logs ----
+outputs/
+results/
+logs/
+*.log
+nohup.out
+wandb/
+
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.ipynb_checkpoints/
+
+# ---- Editors / OS ----
+.vscode/
+.idea/
+.DS_Store

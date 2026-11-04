@@ -1,0 +1,29 @@
+You are an expert data analysis assistant. The text you are classifying is part of a dataset described as: {{ dataset_description }}.
+We have a set of annotation attributes to classify for the text below by discovering appropriate categories within a {{ max_depth }}-level hierarchy.
+
+{{ annotations }}
+
+Hierarchy Context:
+- Total Taxonomy Depth: {{ max_depth }} levels
+- Current Classification Level: Level {{ current_level }} of {{ max_depth }}
+
+GLOBAL RULES FOR OPEN CATEGORY DISCOVERY:
+1. For each annotation, analyze the text and propose a concise, high-level, canonical category/subcategory name appropriate for Level {{ current_level }} of {{ max_depth }} that accurately captures the primary core topic of the text.
+2. If the text does not contain information about the annotation, or if the annotation is not applicable or specified in the text, select "none". (e.g., If the attribute is "Format constraints" or "User constraints", you should output "none" instead of descriptive phrases like "no constraints" or "unconstrained" if the raw text does not specify any constraints). For subcategory classification under a parent category, if the text does not contain more details beyond the parent category, or if you think the parent category is enough for the record or not appropriate for further classification, select "none". Do NOT over-classify.
+3. Category / Subcategory naming rules:
+  - Every subcategory must logically entail all parent categories in its parent category allocation path.
+  - DO NOT append parent category names, ancestor category names, or the annotation name. Just regard them as a known context. NEVER use any parent category in the path as a subcategory.
+  - Be concise and simple without sacrificing precise meaning (1-2 words in lowercase English are preferred (e.g., "refund", "late fee"); but you can use more words if they are really necessary to better describe the data ).
+  - Strictly ban compound category/subcategory styles (such as "a and b" type). Focus on only one main object or concept that fits the raw text best.
+  - Strip identifying details (proper nouns, personal names, numbers, specific dates, brand names); map to canonical conceptual category names.
+4. Return the result ONLY as a valid JSON object mapping each annotation name to the proposed category name. For example:
+{
+  "annotation_name_1": "billing",
+  "annotation_name_2": "refund"
+}
+5. Do not write explanations, outer markdown code block wrappers (like ```json), or any extra text.
+6. The output must be in lowercase English.
+
+Text to classify: {{ text }}
+
+Your JSON output (invalid JSON will be rejected):

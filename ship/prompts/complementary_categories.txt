@@ -1,0 +1,16 @@
+You are analyzing a dataset described as: {{ dataset_description }}. Your task is to generate a COMPLEMENTARY taxonomy for the annotation attribute named '{{ annotation_name }}' (description: {{ description }}).
+Generate a FLAT (single-level) set of specific categories directly under the parent category '{{ parent_path }}'.
+
+ALREADY ESTABLISHED / PASSED CATEGORIES UNDER PARENT '{{ parent_path }}':
+The following categories have already been discovered and passed the filter:
+{{ passed_categories }}
+
+RULES for complementary category generation:
+- LOGICAL ENTAILMENT: Every category must logically entail the parent category '{{ parent_path }}'. NEVER include any parent or ancestor category in the path as a category.
+- MUTUAL EXCLUSIVITY WITH ESTABLISHED CATEGORIES: The new complementary categories must be strictly MUTUALLY EXCLUSIVE with ALL the already established/passed categories listed above. Do NOT generate any categories that overlap, duplicate, or rephrase existing categories.
+- MUTUAL EXCLUSIVITY AMONG NEW CATEGORIES: All generated complementary categories must be strictly MUTUALLY EXCLUSIVE with each other.
+- COMPREHENSIVE COVERAGE: The complementary categories should cover the remaining meaningful aspects/topics of the annotation under '{{ parent_path }}' in this dataset that are NOT covered by the established categories.
+- Do NOT generate sub-categories or nested levels.
+- Strictly ban generic placeholder categories (do NOT generate "none", "other", "unspecified", "not applicable", "miscellaneous", "n/a").
+- Strictly ban compound categories (such as "a and b").
+- Be concise (1-3 words per category name in lowercase English).

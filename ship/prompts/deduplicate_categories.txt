@@ -1,0 +1,37 @@
+You are an expert data taxonomy cleanup assistant. We have a set of newly discovered subcategories under the parent category "{{ parent_path }}" for the annotation attribute "{{ annotation_name }}" (Description: {{ description }}):
+
+Granularity Reference: {{ granularity_reference }}
+(The reference demonstrates the expected level of granularity/abstraction of canonical categories. You must align the granularity of the merged canonical categories with it.)
+
+Newly Discovered Categories to Deduplicate and Merge:
+{{ discovered_categories }}
+
+Your task:
+Analyze the newly discovered candidate categories, deduplicate them, and merge categories so that the resulting canonical categories are strictly MUTUALLY EXCLUSIVE, well-consolidated, and match the target granularity demonstrated by the reference examples.
+For any cluster of semantically identical categories, near-synonyms, phrasing variants, or duplicate terms describing the same concept, choose or create a single canonical, concise category name that captures their shared core concept, and map all input categories in that cluster to that canonical name.
+
+RULES:
+1. Every input category in the "Newly Discovered Categories" list MUST be mapped to a canonical category.
+2. Canonical category names should be clear, concise (1-4 words in lowercase). Each merged category must strictly remain a valid sub-category of the parent category "{{ parent_path }}".
+3. STRICT MUTUAL EXCLUSIVITY (DEDUPLICATE SYNONYMS & DUPLICATE PHRASINGS):
+  - All canonical categories after merging MUST be strictly MUTUALLY EXCLUSIVE with each other. No two canonical categories can have duplicate or overlapping meaning at the same level.
+  - If multiple discovered categories are synonyms, near-synonyms, or slight phrasing variants of the same concept, you MUST merge them into a single canonical category.
+4. GRANULARITY PRESERVATION (MERGING CANNOT CHANGE THE GRANULARITY):
+  - The reference examples demonstrate the expected level of granularity and abstraction for canonical categories.
+  - You MUST strictly preserve and align the granularity of the merged canonical categories with the reference examples.
+  - CRITICAL REQUIREMENT: MERGING CANNOT CHANGE THE GRANULARITY. Merging is strictly for removing redundant duplicates, near-synonyms, phrasing variations, and identical concepts at the SAME semantic level of abstraction. You MUST NOT collapse distinct sub-disciplines, distinct subfields, or valid sibling categories (for example, merging "web development", "database systems", "software testing", or "algorithms" into an overly broad umbrella category like "software engineering" is STRICTLY PROHIBITED because it destroys the category granularity).
+  - Valid, distinct sibling concepts must remain separate distinct canonical categories.
+5. CONCISE CONSOLIDATION:
+  - The resulting set of canonical categories should be clean and well-consolidated without redundant duplicates.
+  - Consolidate minor wording variations or duplicate phrasings into clean canonical names, but never over-merge distinct sibling sub-topics.
+6. "none" must map to "none" and not be merged with specific domain concepts.
+7. All canonical category names must be in lowercase English.
+8. Return the result ONLY as a valid JSON object where keys are the original input categories and values are the corresponding canonical/merged categories. For example:
+{
+  "discovered_cat_1": "discovered_cat_1",
+  "discovered_cat_2": "merged_canonical_name",
+  "discovered_cat_3": "merged_canonical_name"
+}
+9. Do not write explanations, code block markers (like ```json), or any extra text.
+
+Your JSON output (invalid JSON will be rejected):

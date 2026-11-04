@@ -1,0 +1,9 @@
+google-genai>=1.0
+numpy
+pandas
+scipy
+jinja2
+tqdm
+python-dotenv
+# AIM / graphical-model estimation (JAX backend)
+mbi @ git+https://github.com/ryan112358/private-pgm.git
