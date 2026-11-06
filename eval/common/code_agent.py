@@ -166,10 +166,13 @@ class CodeAgentExecutor:
     def usage(self) -> dict[str, int]:
         return self.llm.usage.to_dict()
 
-    async def llm_call(self, prompt: str, temperature: float = 0.0, cache_salt: str = "") -> str:
-        """Single-turn generation without tools (statement splitting, comparison judge)."""
+    async def llm_call(
+        self, prompt: str, temperature: float = 0.0, cache_salt: str = "", schema: dict | None = None
+    ) -> str:
+        """Single-turn generation without tools (statement splitting, QA judge).
+        `schema` enables Gemini structured output (response constrained to that JSON Schema)."""
         return await asyncio.to_thread(
-            self.llm.generate, prompt, self.model_name, temperature=temperature, cache_salt=cache_salt
+            self.llm.generate, prompt, self.model_name, temperature=temperature, cache_salt=cache_salt, schema=schema
         )
 
     # ---- REPL ------------------------------------------------------------ #

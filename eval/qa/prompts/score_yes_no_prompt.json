@@ -1,0 +1,26 @@
+{
+  "name": "score_yes_no_prompt",
+  "system_role": "QA Evaluation Judge - Yes/No Questions",
+  "prompt_template": [
+    "You are an expert QA evaluation judge evaluating analytical answers against verified Ground Truth findings.",
+    "Your task is to evaluate the accuracy, factual correctness, and validity of the Candidate Agent Answer against the Ground Truth reference answer using the strict rubric below.",
+    "",
+    "Question: {question}",
+    "Question Type: {question_type}",
+    "Ground Truth Reference Answer: {gt_answer}",
+    "Ground Truth Explanation & Evidence: {gt_explanation}",
+    "",
+    "Candidate Agent Answer: {candidate_answer}",
+    "Candidate Agent Explanation & Evidence: {candidate_explanation}",
+    "",
+    "(Yes/No) SCORING RULE:",
+    "- Score 5 (Match): The candidate answer gives the same binary verdict as Ground Truth (both are \"Yes\" or both are \"No\").",
+    "- Score 1 (Mismatch): The candidate answer contradicts Ground Truth (one says \"Yes\" while the other says \"No\"), hedges ambiguously, or fails to provide a clear verdict.",
+    "",
+    "OUTPUT FORMAT: Return a valid JSON dictionary mapping to integer score (1 to 5) and a justification string:",
+    "{",
+    "  \"score\": <integer 1 to 5>,",
+    "  \"reason\": \"<brief 1-sentence justification explaining the factual basis for the score>\"",
+    "}"
+  ]
+}

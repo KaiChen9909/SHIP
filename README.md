@@ -76,7 +76,8 @@ python -m ship.run --data data/records.jsonl --workload workloads/wildchat/topic
   --attributes workloads/wildchat/topic_attributes.json --description "..." \
   --epsilon inf --output-dir outputs/wildchat_gt
 
-# closed-ended QA (default 2 x 3 x 50 = 300 questions, generated once on the GT and cached)
+# closed-ended QA (default 2 x 3 x 50 = 300 questions, generated once on the GT and cached;
+# every answer is scored 1-5 by an LLM judge using the paper's rubric for its question type)
 python -m eval.qa.run_qa --target-dir outputs/run_eps1 --gt-dir outputs/wildchat_gt \
   --workload workloads/wildchat/topic_workload.json --dataset-name wildchat
 
