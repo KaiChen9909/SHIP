@@ -1,0 +1,6 @@
+{
+  "1": {
+    "title": "Reasoning Type, Input Context Specification, and Multi-Turn Interaction Trajectory",
+    "description": "What specific type of logical reasoning or analysis does the user prompt require (such as comparative evaluation, causal troubleshooting, algorithmic calculation, or factual retrieval), what form of input context is provided (such as embedded code/text snippets, self-contained direct questions, or context-dependent follow-ups), and what multi-turn interaction pattern occurs across the dialogue (such as iterative refinement, conceptual clarification, error correction, or multi-step task progression)?"
+  }
+}

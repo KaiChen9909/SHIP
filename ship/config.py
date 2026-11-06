@@ -49,13 +49,19 @@ class SHIPConfig:
 
     # ---- taxonomy ----
     depth: int = 3  # max hierarchy depth d
-    dedup_open_before_comp: bool = False  # also de-duplicate C_open before the complementary proposal
+    dedup_open_before_comp: bool = True  # de-duplicate C_open right after open selection (before C_comp)
+    dedup_after_close: bool = False  # Algorithm 3 line 25: also de-duplicate C_surv after closed thresholding
+    dedup_chunk_size: int = 80  # categories per de-duplication call (larger sets: chunked + 2nd pass)
+    normalize_none_variants: bool = True  # Level 1: map null-like DP survivors ("no constraints", ...) to none
+    disambiguate_tree_names: bool = True  # rename identical category names across branches (post-processing)
+    auto_example_path: bool = True  # generate a public granularity example path for each attribute
+    reclassify_enum_max: int = 80  # use enum-constrained re-classification only below this many options
     max_complementary: int | None = None  # optional cap on |C_comp| per parent
     max_text_chars: int | None = 20000  # truncate long records in classification prompts
 
     # ---- models (Gemini) ----
     attribute_model: str = "gemini-3.5-flash"  # M_attr
-    taxonomy_model: str = "gemini-3.5-flash"  # M_tax (complementary proposal + de-duplication)
+    taxonomy_model: str = "gemini-3.5-flash"  # M_tax (sample path, complementary, de-dup, disambiguation)
     classification_model: str = "gemini-3.5-flash-lite"  # M_cls (proposal + re-classification)
     temperature: float = 0.0
     thinking_budget: int | None = None
@@ -73,6 +79,7 @@ class SHIPConfig:
     # ---- misc ----
     seed: int | None = None
     save_private_allocation: bool = False  # WARNING: the allocation table is NOT DP; debugging only.
+    export_eval_compat: bool = True  # also write category_tree.json (schema used by eval/)
 
     extra: dict = field(default_factory=dict)
 

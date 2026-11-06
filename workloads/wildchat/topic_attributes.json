@@ -1,0 +1,20 @@
+{
+  "domain_annotations": {
+    "user_intent_category": {
+      "description": "The primary goal or intent of the user's prompt, categorized into classes like Information Seeking, Creative Writing, Code Generation/Debugging, Text Editing/Transformation, or Reasoning.",
+      "type": "categorical"
+    },
+    "topic_domain": {
+      "description": "The thematic domain of the conversation, such as STEM, Humanities, Business, Daily Life, or Language Learning.",
+      "type": "categorical"
+    },
+    "user_constraints": {
+      "description": "The type of explicit constraints or formatting rules requested by the user, categorized into classes like Formatting/Structure, Length/Word Count, Tone/Style, or No Constraints.",
+      "type": "categorical"
+    },
+    "assistant_fulfillment_strategy": {
+      "description": "The primary response strategy or format delivered by the assistant, categorized into classes like Direct Answer, Step-by-Step Explanation, Code Block, Refusal, or Clarification.",
+      "type": "categorical"
+    }
+  }
+}

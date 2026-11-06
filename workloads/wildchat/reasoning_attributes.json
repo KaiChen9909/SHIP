@@ -1,0 +1,16 @@
+{
+  "domain_annotations": {
+    "reasoning_type": {
+      "description": "The primary type of logical reasoning or analysis required by the user prompt. Categorized into classes such as comparative evaluation, causal troubleshooting, algorithmic calculation, factual retrieval, or creative generation.",
+      "type": "categorical"
+    },
+    "input_context_specification": {
+      "description": "The format and structure of the input context provided in the user prompt. Categorized into classes such as self-contained direct questions, embedded code/text snippets, context-dependent follow-ups, or structured data inputs.",
+      "type": "categorical"
+    },
+    "multi_turn_interaction_trajectory": {
+      "description": "The dominant interaction pattern observed across multiple turns of the dialogue. Categorized into classes such as single-turn, iterative refinement, conceptual clarification, error correction, or multi-step task progression.",
+      "type": "categorical"
+    }
+  }
+}

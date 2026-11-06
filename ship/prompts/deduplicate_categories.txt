@@ -26,12 +26,10 @@ RULES:
   - Consolidate minor wording variations or duplicate phrasings into clean canonical names, but never over-merge distinct sibling sub-topics.
 6. "none" must map to "none" and not be merged with specific domain concepts.
 7. All canonical category names must be in lowercase English.
-8. Return the result ONLY as a valid JSON object where keys are the original input categories and values are the corresponding canonical/merged categories. For example:
-{
-  "discovered_cat_1": "discovered_cat_1",
-  "discovered_cat_2": "merged_canonical_name",
-  "discovered_cat_3": "merged_canonical_name"
-}
-9. Do not write explanations, code block markers (like ```json), or any extra text.
-
-Your JSON output (invalid JSON will be rejected):
+8. Return the result ONLY as a valid JSON array of objects, one for every input category, with fields "raw" (the exact input category string) and "canonical" (its merged lowercase canonical category string). For example:
+[
+  {"raw": "discovered_cat_1", "canonical": "discovered_cat_1"},
+  {"raw": "discovered_cat_2", "canonical": "merged_canonical_name"},
+  {"raw": "discovered_cat_3", "canonical": "merged_canonical_name"}
+]
+9. Do not write explanations, code block markers, or extra text.

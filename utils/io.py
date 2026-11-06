@@ -75,13 +75,28 @@ def read_text_or_literal(value: str | None) -> str | None:
 
 
 def load_workload(value: str) -> list[str]:
-    """Workload from a .json list, a .txt file (one query per line) or a literal string."""
+    """Workload queries from a .json file (a list, {"queries": [...]}, or the benchmark format
+    {"1": {"title": ..., "description": ...}, ...}), a .txt file (one query per line), or a literal string."""
     if os.path.isfile(value):
         with open(value, encoding="utf-8") as f:
             raw = f.read()
         if value.endswith(".json"):
             obj = json.loads(raw)
-            return [str(q) for q in (obj if isinstance(obj, list) else obj["queries"])]
+            if isinstance(obj, dict) and "queries" in obj:
+                obj = obj["queries"]
+            if isinstance(obj, list):
+                return [str(q) for q in obj]
+            if isinstance(obj, dict):
+                out = []
+                for v in obj.values():
+                    if isinstance(v, dict):
+                        title = str(v.get("title", "")).strip()
+                        desc = str(v.get("description", "")).strip()
+                        out.append(f"{title}: {desc}" if title and desc else (title or desc))
+                    else:
+                        out.append(str(v))
+                return out
+            raise ValueError(f"Unsupported workload JSON structure in {value}")
         return [line.strip() for line in raw.splitlines() if line.strip()]
     return [value]
 

@@ -144,6 +144,11 @@ class GeminiClient:
         self.max_delay = max_delay
         self.usage = UsageStats()
 
+    @property
+    def client(self):
+        """The underlying `google.genai.Client` (e.g. for multi-turn tool-calling loops)."""
+        return self._client
+
     # ---- core call ------------------------------------------------------- #
     @staticmethod
     def _key(model: str, prompt: str, temperature: float, json_mode: bool, schema: dict | None,

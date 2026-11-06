@@ -1,0 +1,21 @@
+You are an expert data taxonomy cleanup assistant.
+We have a taxonomy tree for the annotation attribute '{{ annotation_name }}' (Description: {{ description }}).
+Dataset description: {{ dataset_description }}.
+
+We detected identical category names repeated across different branches or levels in the taxonomy tree.
+Every category name in the taxonomy tree for an annotation MUST be unique, descriptive, and clearly disambiguated based on its parent hierarchy context.
+
+Below are the duplicate category names and their full hierarchical paths (from top-level ancestor down to the end category):
+
+{{ duplicate_blocks }}
+
+Your task:
+For EVERY path listed above, provide a new, unique, concise name specifically for the **end category** (the last element in the path) that disambiguates it using its parent path context while preserving its specific meaning.
+Example:
+- Path `"length > characters > exact"` -> `"exact character length"`
+- Path `"length > words > exact"` -> `"exact word length"`
+
+RULES:
+1. Every path listed above MUST be included and mapped to a new unique lowercase English name for its end category.
+2. No two paths may receive the same new end-category name.
+3. Return a JSON array of objects: `[{"path": "<full > path > end_category>", "new_name": "<unique end category name>"}, ...]`.

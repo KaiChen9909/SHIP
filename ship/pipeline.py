@@ -36,7 +36,7 @@ from utils.dp import (
 from utils.io import save_json
 from utils.llm import GeminiClient
 
-from .attributes import determine_attributes
+from .attributes import determine_attributes, hydrate_example_paths
 from .config import Attribute, SHIPConfig
 from .synthesis import paths_to_frame, synthesize
 from .taxonomy import AttributeTaxonomy, HierarchicalTaxonomyBuilder
@@ -58,10 +58,13 @@ class SHIPResult:
     def taxonomy_dict(self) -> dict:
         return {a: t.to_dict() for a, t in self.taxonomies.items()}
 
-    def save(self, output_dir: str, save_private: bool = False) -> None:
+    def save(self, output_dir: str, save_private: bool = False, export_eval_compat: bool = True) -> None:
         os.makedirs(output_dir, exist_ok=True)
         save_json([a.to_dict() for a in self.attributes], os.path.join(output_dir, "attributes.json"))
         save_json(self.taxonomy_dict(), os.path.join(output_dir, "taxonomy.json"))
+        if export_eval_compat:
+            save_json({a: t.to_category_tree_dict() for a, t in self.taxonomies.items()},
+                      os.path.join(output_dir, "category_tree.json"))
         save_json(self.budget.to_dict(), os.path.join(output_dir, "privacy.json"))
         save_json(self.usage, os.path.join(output_dir, "usage.json"))
         self.synthetic.to_csv(os.path.join(output_dir, "synthetic.csv"), index=False)
@@ -108,9 +111,11 @@ class SHIP:
         cfg, t0 = self.cfg, time.time()
         n_full = len(texts)
 
-        # Workload analysis (public: uses only W and S_D).
+        # Workload analysis and granularity calibration (public: uses only W and S_D).
         if attributes is None:
             attributes = determine_attributes(self.llm, workload, dataset_description, cfg)
+        else:
+            attributes = hydrate_example_paths(self.llm, attributes, dataset_description, cfg)
         logger.info("Attributes: %s", [a.name for a in attributes])
 
         budget = self._budget(n_full, len(attributes))

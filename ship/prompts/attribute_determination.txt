@@ -1,0 +1,19 @@
+Dataset Description:
+{{ dataset_description }}
+
+We have a workload of analytical queries/tasks to run on the dataset:
+{{ workload }}
+
+Identify a minimal, standardized set of structured features/attributes (extracted per record within a {{ max_depth }}-level hierarchy) needed to answer these tasks.
+Here are the guidelines:
+1. **Core Targets vs. Descriptive Hints:** Distinguish the core target items that the task aims to investigate/measure from contextual text that merely describes, illustrates, or hints at how to infer them. Only core target items should become domain attributes. Contextual hints, examples, or underlying inference signals (for example, "as indicated by phrasing style or word choice") should be incorporated into the attribute's `description` field rather than being proposed as separate attributes.
+2. **Exclusions:** Do NOT propose raw, unstructured text columns (e.g. `content`, `abstract`, `text`) as features. Propose the descriptive features summarized from them that can be used to answer the tasks.
+3. **Categorical Features Only:** Prioritize rich, categorical summary features. Always transform numerical or textual features that describe numerical values into clear and bucketed categorical features and provide descriptions directly requiring interval values or bucketed ranges (e.g., prefer `word_count_interval` as feature name instead of `word_count` or `text_length`).
+4. **Avoid Boolean Features:** Avoid proposing boolean features or binary categorical features (e.g. `whether_has_image`) if they can be directly derived from other categorical features.
+5. **Short Descriptions:** Provide a concise description for each feature. Describe the meaning of the feature, including contextual hints and inference signals, and provide a rough guidance for the categorization axis (the core dimension or logic used to divide this feature).
+6. **Direct Semantic Derivability:** Propose features that are direct summaries of an individual record's content. Even though some queries may require complex cross-record analysis, this aggregation should not be baked into a single-record feature.
+7. **Assume Features Exist:** Do not add instructions for handling missing data in the attribute description itself.
+8. **Atomic Features AND Atomic Categories:** Each proposed feature must be atomic, representing a single orthogonal dimension of variation. Every category value along this attribute must be a mutually exclusive point on one single axis. Reject any feature whose categories bundle multiple independent properties into one label; split compound axes into separate orthogonal attributes.
+9. **Granularity Example Path (`example_path`):** For each attribute, also provide one illustrative {{ max_depth }}-level hierarchical path formatted strictly as `"<level_1_example> (level 1) > <level_2_example> (level 2) > <level_3_example> (level 3)"` (matching {{ max_depth }} levels in lowercase English) demonstrating ideal macro-to-specific granularity.
+
+Return a JSON array of objects with fields `"name"` (snake_case), `"description"`, and `"example_path"`.

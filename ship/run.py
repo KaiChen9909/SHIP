@@ -3,12 +3,12 @@
 Example (from the repository root):
     python -m ship.run \
         --data data/chatdoctor.jsonl --text-field text \
-        --workload workloads/chatdoctor.txt \
+        --workload workloads/chatdoctor/topic_workload.json \
         --description "Conversations between patients and doctors" \
         --epsilon 1.0 --output-dir outputs/chatdoctor_eps1
 
     # skip workload analysis by giving attributes directly:
-        --attributes attributes.json   # [{"name": ..., "description": ..., "example_path": ...}, ...]
+        --attributes workloads/chatdoctor/topic_attributes.json
 """
 
 from __future__ import annotations
@@ -38,7 +38,16 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--subsample-rate", type=float, default=None)
     p.add_argument("--depth", type=int, default=3)
     p.add_argument("--tau-close", type=float, default=10.0)
-    p.add_argument("--dedup-open-before-comp", action="store_true")
+    p.add_argument("--no-dedup-open-before-comp", action="store_false", dest="dedup_open_before_comp",
+                   help="skip de-duplication of C_open before the complementary proposal")
+    p.add_argument("--dedup-after-close", action="store_true",
+                   help="also de-duplicate C_surv after closed thresholding (Algorithm 3 line 25)")
+    p.add_argument("--no-normalize-none", action="store_false", dest="normalize_none_variants",
+                   help="skip the level-1 LLM mapping of null-like categories to none")
+    p.add_argument("--no-disambiguate", action="store_false", dest="disambiguate_tree_names",
+                   help="skip whole-tree disambiguation of repeated category names")
+    p.add_argument("--no-auto-example-path", action="store_false", dest="auto_example_path",
+                   help="do not generate granularity example paths for attributes without one")
     p.add_argument("--max-text-chars", type=int, default=20000)
 
     p.add_argument("--attribute-model", default=SHIPConfig.attribute_model)
@@ -65,6 +74,8 @@ def main() -> None:
     cfg = SHIPConfig(
         epsilon=args.epsilon, delta=args.delta, subsample_rate=args.subsample_rate, depth=args.depth,
         tau_close=args.tau_close, dedup_open_before_comp=args.dedup_open_before_comp,
+        dedup_after_close=args.dedup_after_close, normalize_none_variants=args.normalize_none_variants,
+        disambiguate_tree_names=args.disambiguate_tree_names, auto_example_path=args.auto_example_path,
         max_text_chars=args.max_text_chars, attribute_model=args.attribute_model,
         taxonomy_model=args.taxonomy_model, classification_model=args.classification_model,
         temperature=args.temperature, thinking_budget=args.thinking_budget, max_workers=args.max_workers,
@@ -79,7 +90,8 @@ def main() -> None:
     attributes = load_attributes(args.attributes) if args.attributes else None
 
     result = SHIP(cfg).run(texts, workload, description, attributes)
-    result.save(args.output_dir, save_private=cfg.save_private_allocation)
+    result.save(args.output_dir, save_private=cfg.save_private_allocation,
+                export_eval_compat=cfg.export_eval_compat)
     logging.info("Saved SHIP release to %s (usage: %s)", args.output_dir, result.usage)
 
 

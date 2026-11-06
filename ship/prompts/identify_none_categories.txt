@@ -1,0 +1,11 @@
+You are an expert taxonomy and data classification assistant.
+We have collected unique discovered categories that survived DP partition selection for the following annotation attributes:
+
+{{ attribute_blocks }}
+
+TASK:
+For each annotation attribute, identify all categories from its list that represent the ABSENCE of information, a null state, or mean "none" / "not applicable" / "unconstrained" / "unspecified" (for example: "none", "no constraints", "unconstrained", "none specified", "no format constraints", "unspecified", "not applicable", "n/a", "no requirements", "no restriction", "regular", "default", etc.).
+
+RULES:
+1. Only select categories that signify that the text does NOT have this attribute, is unconstrained, or has no specific information for this annotation.
+2. Return ONLY a valid JSON object mapping each attribute name to an array of its none-equivalent category strings.

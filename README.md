@@ -10,18 +10,26 @@ ship/                     main algorithm
   synthesis.py            path encoding + AIM + per-level decoding
   config.py               SHIPConfig / Attribute
   run.py                  CLI
-  prompts/                Jinja2 prompt templates (Appendix G, Figs. 5-8)
+  prompts/                prompt templates (plain variable substitution, no control flow)
+    attribute_determination.txt  workload -> attributes
+    sample_path.txt              public granularity example path per attribute
     propose_categories.txt       Fig. 5  open discovery
+    identify_none_categories.txt level-1 null-like category detection
+    deduplicate_categories.txt   Fig. 8  de-duplication (list of {raw, canonical})
+    complementary_categories.txt Fig. 7  complementary proposal
     reclassify.txt               Fig. 6  re-classification
-    complementary_categories.txt Fig. 7  complementary proposal (output-format line added)
-    deduplicate_categories.txt   Fig. 8  de-duplication
-    attribute_determination.txt  (not given in the paper; empty, fill in before use)
+    disambiguate_tree_names.txt  whole-tree renaming of repeated names
+workloads/                benchmark workloads + pre-extracted attributes (chatdoctor, wildchat, cfpb)
 utils/
   llm.py                  Gemini API client (retries, sqlite cache, JSON parsing, thread pool)
   dp.py                   zCDP<->DP, Gaussian thresholding, budget split, Poisson subsampling
   aim.py                  AIM synthesizer parameterised by rho (adapted from private-pgm)
   io.py                   data / workload loading, prompt rendering
-eval/                     (to be added)
+eval/
+  common/                 sandboxed Python-REPL code agent (google-genai tool calling),
+                          taxonomy/table helpers (tree_inspect, tabular_stat, tabular_crosstab)
+  qa/                     closed-ended QA: GT question bank -> answer on target -> 1-5 rubric (Acc@T4)
+  qa_open/                open-ended QA: reports -> atomic statements -> cross verification (P/R/F1@T4)
 ```
 
 ## Setup
@@ -36,19 +44,49 @@ export GOOGLE_API_KEY=...        # or put it in .env; use --vertexai for Vertex 
 ```bash
 python -m ship.run \
   --data data/records.jsonl --text-field text \
-  --workload workload.txt \
+  --workload workloads/wildchat/topic_workload.json \
   --description "Conversations between users and an AI assistant" \
   --epsilon 1.0 --output-dir outputs/run_eps1 \
-  [--attributes attributes.json] [--subsample-rate 0.02] [--depth 3]
+  [--attributes workloads/wildchat/topic_attributes.json] [--subsample-rate 0.02] [--depth 3]
 ```
 
-`--attributes` skips workload analysis; the file is a JSON list of
-`{"name", "description", "example_path"?, "reference_categories"?}`.
-Otherwise `ship/prompts/attribute_determination.txt` must be filled in first
-(see the docstring of `ship/attributes.py` for its variables and expected output).
+Optional steps are on by default and can be switched off with `--no-dedup-open-before-comp`,
+`--no-normalize-none`, `--no-disambiguate`, `--no-auto-example-path`; `--dedup-after-close`
+additionally de-duplicates after closed thresholding (Algorithm 3 line 25).
+
+`--workload` accepts a .txt file (one query per line), a JSON list, or the benchmark format
+`{"1": {"title": ..., "description": ...}}`. `--attributes` skips workload analysis; it accepts a
+JSON list of `{"name", "description", "example_path"?}` or `{"domain_annotations": {name: {...}}}`.
+Attributes without `example_path` get one generated from public information.
 
 Outputs (`--output-dir`): `taxonomy.json` (DP taxonomy with noisy counts),
+`category_tree.json` (same tree in the schema used by `eval/`),
 `synthetic.csv` (DP synthetic table with `<attr> (level k)` / `<attr> (path)` columns),
 `attributes.json`, `privacy.json`, `usage.json`.
 `--save-private-allocation` additionally writes the **non-private** record allocation
 to `private_DO_NOT_RELEASE/` for analysis only.
+
+## Evaluation
+
+Both protocols compare a released insight (`--target-dir`, a SHIP output directory) with a
+ground-truth directory (`--gt-dir`), e.g. a non-private run on the same attributes:
+
+```bash
+python -m ship.run --data data/records.jsonl --workload workloads/wildchat/topic_workload.json \
+  --attributes workloads/wildchat/topic_attributes.json --description "..." \
+  --epsilon inf --output-dir outputs/wildchat_gt
+
+# closed-ended QA (default 2 x 3 x 50 = 300 questions, generated once on the GT and cached)
+python -m eval.qa.run_qa --target-dir outputs/run_eps1 --gt-dir outputs/wildchat_gt \
+  --workload workloads/wildchat/topic_workload.json --dataset-name wildchat
+
+# open-ended QA (5 rounds, Recall / Precision / F1 at score >= 4)
+python -m eval.qa_open.run_qa_open --target-dir outputs/run_eps1 --gt-dir outputs/wildchat_gt \
+  --workload workloads/wildchat/topic_workload.json --dataset-name wildchat --num-rounds 5
+```
+
+The evaluation agent defaults to `gemini-3.5-flash-lite` (`--model` to change). Agent code can
+only read the released files of the directory it evaluates (`synthetic.csv`, `taxonomy.json`,
+`category_tree.json`, ...); `private_DO_NOT_RELEASE/` is blocked. The sandbox is a guard for a
+cooperative model, not a security boundary. Reports are written to the target directory unless
+`--output` is given.

@@ -1,0 +1,6 @@
+{
+  "1": {
+    "title": "User Intent, Task Constraints, and Assistant Solution Fulfillment",
+    "description": "What are the users' primary task intents and topic domains, what specific constraints or output formatting requirements are requested, and what types of solutions or response strategies do the assistants provide to resolve the requests?"
+  }
+}

@@ -1,5 +1,6 @@
 You are analyzing a dataset described as: {{ dataset_description }}. Your task is to generate a COMPLEMENTARY taxonomy for the annotation attribute named '{{ annotation_name }}' (description: {{ description }}).
 Generate a FLAT (single-level) set of specific categories directly under the parent category '{{ parent_path }}'.
+Granularity Reference (for abstraction level calibration only): {{ example_path }}
 
 ALREADY ESTABLISHED / PASSED CATEGORIES UNDER PARENT '{{ parent_path }}':
 The following categories have already been discovered and passed the filter:

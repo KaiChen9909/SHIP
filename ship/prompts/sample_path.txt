@@ -1,0 +1,9 @@
+You are analyzing a dataset described as: {{ dataset_description }}.
+We are building a {{ max_depth }}-level hierarchical taxonomy for the attribute "{{ annotation_name }}" (Description: {{ description }}).
+
+Generate ONE illustrative {{ max_depth }}-level root-to-leaf category path that demonstrates the ideal level of abstraction at each depth, from a broad top-level domain (Level 1) down to a specific sub-topic (Level {{ max_depth }}).
+
+RULES:
+1. Each level must logically entail its parent category without repeating parent words unnecessarily.
+2. Use concise (1-3 words), lowercase English conceptual names. Do NOT use placeholders like "none" or "other".
+3. Return a JSON object `{"levels": ["<level_1_name>", "<level_2_name>", ...]}` with at most {{ max_depth }} elements.

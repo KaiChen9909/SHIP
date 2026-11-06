@@ -1,0 +1,16 @@
+{
+  "domain_annotations": {
+    "primary_symptom_system": {
+      "description": "The primary physiological system or category associated with the patient's chief complaints and symptoms, categorized into classes like Respiratory, Gastrointestinal, Cardiovascular, Dermatological, Neurological, Musculoskeletal, or General/Constitutional.",
+      "type": "categorical"
+    },
+    "recommended_diagnostic_type": {
+      "description": "The main type of diagnostic test, imaging, or examination suggested by the doctor to investigate the symptoms, categorized into classes like Laboratory Tests (blood/urine), Medical Imaging (X-ray/MRI/CT/Ultrasound), Physical/Clinical Exam, Specialized Procedures, or None.",
+      "type": "categorical"
+    },
+    "clinical_diagnosis_category": {
+      "description": "The broad clinical classification of the doctor's final or provisional diagnosis conclusion, categorized into classes like Infectious Disease, Chronic/Metabolic Condition, Acute Injury/Trauma, Inflammatory/Autoimmune, Symptomatic/Undiagnosed, or Normal/Healthy.",
+      "type": "categorical"
+    }
+  }
+}

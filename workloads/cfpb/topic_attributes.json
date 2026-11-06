@@ -1,0 +1,12 @@
+{
+  "domain_annotations": {
+    "primary_grievance_category": {
+      "description": "The primary category of the customer's complaint or grievance, classified into standard areas such as billing/pricing, product quality/defect, delivery/shipping, customer service behavior, or technical support.",
+      "type": "categorical"
+    },
+    "requested_resolution_type": {
+      "description": "The specific type of resolution or corrective action requested by the customer, categorized into options like refund/reimbursement, product replacement/repair, contract cancellation, service reactivation, or information/explanation.",
+      "type": "categorical"
+    }
+  }
+}
