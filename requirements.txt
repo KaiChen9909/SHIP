@@ -6,4 +6,5 @@ jinja2
 tqdm
 python-dotenv
 # AIM / graphical-model estimation (JAX backend)
-mbi @ git+https://github.com/ryan112358/private-pgm.git
+# pinned to the tested commit (mbi 1.1.0, Python >= 3.10); utils/aim.py also supports mbi >= 2.0
+mbi @ git+https://github.com/ryan112358/private-pgm.git@3ebb5c7541cb51afd90f5f8203660c49b9a9e16c

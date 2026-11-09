@@ -264,13 +264,3 @@ def ship_budget(
         open_fraction=open_fraction,
     )
 
-
-def nonprivate_budget(num_attributes: int, depth: int, open_threshold: float, tau_close: float) -> SHIPBudget:
-    """Placeholder budget for the eps = inf (non-DP) setting: no noise, plain frequency filters."""
-    inf = float("inf")
-    return SHIPBudget(
-        epsilon=inf, delta=0.0, rho_total=inf, rho_tax=inf, rho_aim=inf, delta_tax=0.0,
-        num_attributes=num_attributes, depth=depth, rho_step=inf, delta_step=0.0,
-        rho_open=inf, rho_close=inf, sigma_open=0.0, sigma_close=0.0,
-        tau_open=open_threshold, tau_close=tau_close, open_fraction=1.0,
-    )

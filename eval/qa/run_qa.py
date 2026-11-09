@@ -62,6 +62,7 @@ def main(argv: list[str] | None = None) -> None:
                 "overall_average_score": report["overall_average_score"],
                 "overall_mae": report["overall_mae"],
                 "judge_failures": report["judge_failures"],
+                "unanswered_questions": report["unanswered_questions"],
                 "breakdown_by_question_type": report["breakdown_by_question_type"],
             },
             indent=2,

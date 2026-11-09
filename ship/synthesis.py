@@ -56,11 +56,8 @@ def synthesize(
     cfg: SHIPConfig,
     rng: np.random.Generator,
 ) -> pd.DataFrame:
-    """Run AIM with budget rho_aim on the private allocation and return the decoded synthetic table.
-    With rho_aim = inf (non-DP), the allocation itself is returned."""
+    """Run AIM with budget rho_aim on the private allocation and return the decoded synthetic table."""
     domains = build_domains(taxonomies)
-    if np.isinf(rho_aim):
-        return decode(encode(paths, domains), domains, cfg.depth)
     codes = encode(paths, domains)
     sizes = {a: len(d) for a, d in domains.items()}
     synth = aim(

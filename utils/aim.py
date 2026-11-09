@@ -2,7 +2,9 @@
 
 Adapted from `private-pgm/mechanisms/aim.py` (https://github.com/ryan112358/private-pgm) and
 parameterised directly by a zCDP budget `rho`, so it composes with SHIP's accounting.
-Requires the `mbi` package (private-pgm >= 1.0, JAX backend).
+Requires the `mbi` package (private-pgm, JAX backend). Works with both the 1.x API
+(`estimation.mirror_descent(..., potentials=...)`) and the >= 2.0 API
+(`estimation.MirrorDescent().estimate(..., warm_start=...)`); requirements.txt pins a tested commit.
 """
 
 from __future__ import annotations
@@ -53,6 +55,17 @@ def _filter_candidates(candidates, model, size_limit):
     }
 
 
+def _estimate(domain, measurements, iters: int, warm_start=None):
+    """Mirror-descent estimation of a graphical model, across private-pgm API versions."""
+    from mbi import estimation
+
+    if hasattr(estimation, "MirrorDescent"):  # mbi >= 2.0
+        return estimation.MirrorDescent().estimate(domain, measurements, iters=iters, warm_start=warm_start)
+    return estimation.mirror_descent(  # mbi 1.x
+        domain, measurements, iters=iters, potentials=warm_start, callback_fn=lambda *_: None
+    )
+
+
 def _exponential_mechanism(qualities: dict, epsilon: float, sensitivity: float, rng: np.random.Generator):
     keys = list(qualities.keys())
     q = np.array([qualities[k] for k in keys], dtype=float)
@@ -89,14 +102,14 @@ def aim(
     Returns:
         Integer-coded synthetic DataFrame with the same columns.
     """
-    from mbi import Dataset, Domain, LinearMeasurement, estimation
+    from mbi import Dataset, Domain, LinearMeasurement
 
     rng = rng or np.random.default_rng()
     cols = list(domain.keys())
     if rho <= 0:
         raise ValueError("AIM needs rho > 0.")
     dom = Domain(cols, [int(domain[c]) for c in cols])
-    data = Dataset(df[cols].astype(int), dom)
+    data = Dataset({c: df[c].to_numpy(dtype=int) for c in cols}, dom)
 
     if workload is None:
         k = min(degree, len(cols))
@@ -115,7 +128,7 @@ def aim(
 
     measurements = [noisy(cl, sigma) for cl in oneway]
     rho_used = len(oneway) * 0.5 / sigma**2
-    model = estimation.mirror_descent(dom, measurements, iters=max_iters, callback_fn=lambda *_: None)
+    model = _estimate(dom, measurements, max_iters)
     potentials = None
 
     t, terminate = 0, False
@@ -144,16 +157,12 @@ def aim(
         z = np.asarray(model.project(cl).datavector())
         pcliques = list({m.clique for m in measurements})
         potentials = model.potentials.expand(pcliques)
-        model = estimation.mirror_descent(
-            dom, measurements, iters=max_iters, potentials=potentials, callback_fn=lambda *_: None
-        )
+        model = _estimate(dom, measurements, max_iters, warm_start=potentials)
         w = np.asarray(model.project(cl).datavector())
         if np.linalg.norm(w - z, 1) <= sigma * np.sqrt(2 / np.pi) * n:
             sigma /= 2
             epsilon *= 2
 
-    model = estimation.mirror_descent(
-        dom, measurements, iters=max_iters, potentials=potentials, callback_fn=lambda *_: None
-    )
-    synth = model.synthetic_data(rows=num_rows)
-    return synth.df[cols].reset_index(drop=True)
+    model = _estimate(dom, measurements, max_iters, warm_start=potentials)
+    synth = model.synthetic_data(rows=num_rows).to_dict()
+    return pd.DataFrame({c: np.asarray(synth[c]).astype(int) for c in cols})

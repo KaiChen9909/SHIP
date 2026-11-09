@@ -227,7 +227,8 @@ class AttributeTaxonomy:
                 "name": n.name if path else "Root",
                 "is_leaf": not children,
                 "type": n.source,
-                "dp_count": round(count or 0.0, 3),
+                # Root and reserved fallback nodes are never measured: null, not a fake 0.
+                "dp_count": None if count is None else round(count, 3),
                 "children": children,
             }
 

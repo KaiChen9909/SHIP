@@ -69,13 +69,13 @@ to `private_DO_NOT_RELEASE/` for analysis only.
 ## Evaluation
 
 Both protocols compare a released insight (`--target-dir`, a SHIP output directory) with a
-ground-truth directory (`--gt-dir`), e.g. a non-private run on the same attributes:
+ground-truth directory (`--gt-dir`). The ground truth is produced outside this repository (the paper
+uses a separate non-DP summarization, or labels known by construction for synthetic corpora); it
+must hold `category_tree.json` and a per-record table: either `synthetic.csv` in the SHIP layout
+(`<attr> (level k)` / `<attr> (path)` columns) or `allocated_paths.csv` with one `a > b > c` path
+column per attribute (level columns are derived automatically).
 
 ```bash
-python -m ship.run --data data/records.jsonl --workload workloads/wildchat/topic_workload.json \
-  --attributes workloads/wildchat/topic_attributes.json --description "..." \
-  --epsilon inf --output-dir outputs/wildchat_gt
-
 # closed-ended QA (default 2 x 3 x 50 = 300 questions, generated once on the GT and cached;
 # every answer is scored 1-5 by an LLM judge using the paper's rubric for its question type)
 python -m eval.qa.run_qa --target-dir outputs/run_eps1 --gt-dir outputs/wildchat_gt \

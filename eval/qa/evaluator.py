@@ -35,6 +35,7 @@ def _summarize_group(items: list[dict[str, Any]]) -> dict[str, Any]:
         "accuracy_t5": round(sum(1 for s in scores if s == 5) / n, 4) if n else 0.0,
         "mae": round(sum(errs) / len(errs), 4) if errs else None,
         "judge_failures": sum(1 for q in items if q.get("judge_failed")),
+        "unanswered": sum(1 for q in items if q.get("candidate_answer") is None),
     }
 
 
@@ -163,6 +164,7 @@ class QueryAnswerEvaluator:
             "overall_average_score": overall["average_score"],
             "overall_mae": overall["mae"],
             "judge_failures": overall["judge_failures"],
+            "unanswered_questions": overall["unanswered"],
             "multi_round_stats": {
                 "accuracy_t4_mean": round(mean_t4, 4),
                 "accuracy_t4_std": round(std_t4, 4),

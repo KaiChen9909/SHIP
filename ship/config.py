@@ -38,14 +38,13 @@ class Attribute:
 @dataclass
 class SHIPConfig:
     # ---- privacy ----
-    epsilon: float = 1.0  # global epsilon; float("inf") => non-private run
+    epsilon: float = 1.0  # global epsilon (finite, > 0)
     delta: float | None = None  # global delta; default 1 / (n ln n) with n = full corpus size
     subsample_rate: float | None = None  # Poisson subsampling ratio r (Appendix B.3); None = no subsampling
     open_fraction: float = 0.9  # rho_open = 0.9 rho_step, rho_close = 0.1 rho_step
     aim_fraction: float = 0.5  # rho_aim = rho_tax = rho_total / 2
     delta_tax_fraction: float = 1.0 / 3.0  # delta_tax = delta / 3
     tau_close: float = 10.0  # closed-stage threshold (Appendix B.1 / B.6)
-    nondp_open_threshold: float = 10.0  # frequency filter for open categories when epsilon = inf
 
     # ---- taxonomy ----
     depth: int = 3  # max hierarchy depth d

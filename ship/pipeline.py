@@ -28,7 +28,6 @@ from utils.dp import (
     SHIPBudget,
     approx_cdp_eps,
     default_delta,
-    nonprivate_budget,
     poisson_subsample,
     ship_budget,
     subsample_budget,
@@ -83,8 +82,8 @@ class SHIP:
 
     def _budget(self, n_full: int, num_attributes: int) -> SHIPBudget:
         cfg = self.cfg
-        if math.isinf(cfg.epsilon):
-            return nonprivate_budget(num_attributes, cfg.depth, cfg.nondp_open_threshold, cfg.tau_close)
+        if not (0.0 < cfg.epsilon < math.inf):
+            raise ValueError(f"epsilon must be a finite positive number, got {cfg.epsilon}")
         delta = cfg.delta if cfg.delta is not None else default_delta(n_full)
         eps_run, delta_run = cfg.epsilon, delta
         if cfg.subsample_rate is not None and cfg.subsample_rate < 1.0:

@@ -33,7 +33,7 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--attributes", default=None, help="JSON file with attributes (skips workload analysis)")
     p.add_argument("--output-dir", required=True)
 
-    p.add_argument("--epsilon", type=float, default=1.0, help="use 'inf' for a non-private run")
+    p.add_argument("--epsilon", type=float, default=1.0, help="global privacy budget (finite, > 0)")
     p.add_argument("--delta", type=float, default=None, help="default: 1/(n ln n)")
     p.add_argument("--subsample-rate", type=float, default=None)
     p.add_argument("--depth", type=int, default=3)

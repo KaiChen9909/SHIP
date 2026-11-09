@@ -182,6 +182,13 @@ def tree_inspect(
     }
 
 
+def _level_value(path: str, idx: int) -> str:
+    """Category of a ' > '-joined path at 0-based level `idx`; "none" if the path ends above that level
+    (same convention as the level columns, whose missing cells are read as "none")."""
+    parts = [p.strip() for p in str(path).split(">") if p.strip()]
+    return parts[idx] if idx < len(parts) else "none"
+
+
 def _resolve_column_series(df: pd.DataFrame, annotation_name: str) -> tuple[pd.Series | None, str | None]:
     """Resolve annotation_name from '<attr>', '<attr> (path)', or divided '<attr> (level k)' columns."""
     if annotation_name in df.columns:
@@ -256,11 +263,7 @@ def tabular_stat(
             if lvl_col in df.columns:
                 lvl_series = df[lvl_col].fillna("none").astype(str).str.strip()
             else:
-                lvl_series = series.apply(
-                    lambda s: [p.strip() for p in s.split(">")][idx]
-                    if len([p.strip() for p in s.split(">")]) > idx
-                    else s
-                )
+                lvl_series = series.apply(lambda s: _level_value(s, idx))
             counts = lvl_series.value_counts().to_dict()
         else:
             counts = series.value_counts().to_dict()
@@ -325,8 +328,8 @@ def tabular_crosstab(
             return {"error": f"Columns missing from DataFrame. Available: {df.columns.tolist()}"}
         if level is not None and level > 0:
             idx = int(level) - 1
-            s1 = s1.apply(lambda s: [p.strip() for p in s.split(">")][idx] if len([p.strip() for p in s.split(">")]) > idx else s)
-            s2 = s2.apply(lambda s: [p.strip() for p in s.split(">")][idx] if len([p.strip() for p in s.split(">")]) > idx else s)
+            s1 = s1.apply(lambda s: _level_value(s, idx))
+            s2 = s2.apply(lambda s: _level_value(s, idx))
         ct = pd.crosstab(s1, s2)
         return {
             "annotation_1": col1,
