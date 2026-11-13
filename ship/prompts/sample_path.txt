@@ -1,9 +1,16 @@
 You are analyzing a dataset described as: {{ dataset_description }}.
-We are building a {{ max_depth }}-level hierarchical taxonomy for the attribute "{{ annotation_name }}" (Description: {{ description }}).
+We are generating ONE illustrative hierarchy path for the attribute "{{ annotation_name }}" (Description: {{ description }}), one level at a time.
 
-Generate ONE illustrative {{ max_depth }}-level root-to-leaf category path that demonstrates the ideal level of abstraction at each depth, from a broad top-level domain (Level 1) down to a specific sub-topic (Level {{ max_depth }}).
+Hierarchy Context:
+- Total Taxonomy Depth: {{ max_depth }} levels
+- Current Generation Level: Level {{ current_level }} of {{ max_depth }}
+- Previously Generated Parent Path: {{ parent_path }}
+
+Generate exactly ONE category for Level {{ current_level }}. It should demonstrate the ideal abstraction level at this depth in a {{ max_depth }}-level hierarchy.
 
 RULES:
-1. Each level must logically entail its parent category without repeating parent words unnecessarily.
-2. Use concise (1-3 words), lowercase English conceptual names. Do NOT use placeholders like "none" or "other".
-3. Return a JSON object `{"levels": ["<level_1_name>", "<level_2_name>", ...]}` with at most {{ max_depth }} elements.
+1. At Level 1, choose a broad top-level domain appropriate for the attribute. At deeper levels, choose a more specific subcategory that logically entails every category in the parent path.
+2. Keep the existing parent path fixed. Do not repeat an ancestor category or append parent words unnecessarily. Leave room for further refinement when the current level is below the total depth.
+3. Use a concise (1-3 words), lowercase English conceptual name. Do NOT use placeholders like "none", "other", "unspecified", "not applicable", "miscellaneous", or "n/a".
+4. Return only the current category. Do NOT generate a full path, previous or future levels, a list, or a tree. Do not add level markers to the category name.
+5. Return a JSON object `{"category": "<current_level_category>"}` with no explanations or markdown wrappers.

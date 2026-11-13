@@ -39,8 +39,8 @@ def cdp_eps(rho: float, delta: float) -> float:
     """
     if not 0.0 < delta < 1.0:
         raise ValueError(f"delta must be in (0, 1), got {delta}")
-    if rho < 0:
-        raise ValueError(f"rho must be >= 0, got {rho}")
+    if not 0.0 <= rho < math.inf:
+        raise ValueError(f"rho must be finite and >= 0, got {rho}")
     if rho == 0:
         return 0.0
     # Coarse log-spaced search for the minimiser, then local refinement.
@@ -71,15 +71,20 @@ def cdp_rho(eps: float, delta: float) -> float:
 
     This is f_rho in Appendix B.1 of the paper.
     """
-    if eps <= 0:
-        raise ValueError(f"eps must be > 0, got {eps}")
+    if not 0.0 < eps < math.inf:
+        raise ValueError(f"eps must be finite and > 0, got {eps}")
     if not 0.0 < delta < 1.0:
         raise ValueError(f"delta must be in (0, 1), got {delta}")
     hi = 1.0
     while cdp_eps(hi, delta) < eps:
         hi *= 2.0
     # eps is monotone increasing in rho.
-    rho = brentq(lambda r: cdp_eps(r, delta) - eps, 1e-12, hi, xtol=1e-14, maxiter=500)
+    # Include zero so small positive eps can yield rho below 1e-12. Use a relative
+    # stopping criterion: a fixed absolute tolerance can overwhelm such budgets.
+    rho = brentq(
+        lambda r: cdp_eps(r, delta) - eps, 0.0, hi,
+        xtol=np.nextafter(0.0, 1.0), maxiter=500,
+    )
     # brentq may land marginally above the target; step down to be conservative.
     while cdp_eps(rho, delta) > eps:
         rho *= 1 - 1e-9
@@ -207,6 +212,8 @@ class SHIPBudget:
     global_epsilon: float | None = None
     global_delta: float | None = None
     subsample_rate: float | None = None
+    budget_mode: str = "tight"
+    delta_conversion: float | None = None
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -221,23 +228,43 @@ def ship_budget(
     open_fraction: float = 0.9,
     delta_tax_fraction: float = 1.0 / 3.0,
     aim_fraction: float = 0.5,
+    budget_mode: str = "tight",
 ) -> SHIPBudget:
     """Privacy-budget split of SHIP (Appendix B.1 and Eq. (3)).
 
     delta_tax = delta / 3,
-    rho_total = f_rho(eps, delta_bar),  delta_bar = (delta - delta_tax) / (1 - delta_tax),
+    rho_total = f_rho(eps, delta_conversion),
     rho_aim = rho_tax = rho_total / 2,
     rho_step = rho_tax / (|A| d),  delta_step = delta_tax / (|A| d),
     rho_open = 0.9 rho_step,  rho_close = 0.1 rho_step.
 
-    Note: the paper writes f_rho(eps, 2 delta / 3); we use the exact delta_bar from
-    Theorem 1, which is marginally smaller (hence slightly more conservative).
+    "tight" (default) uses delta_conversion = (delta - delta_tax) / (1 - delta_tax)
+    from Theorem 1. "loose" uses delta_conversion = delta - delta_tax, matching
+    Appendix B.1's 2 delta / 3 when delta_tax_fraction = 1/3. The tight value is
+    larger, allowing a larger rho and less noise at the same target (eps, delta).
+    The loose split is conservative because
+    delta_tax + (1 - delta_tax) * delta_conversion <= delta.
     """
+    if not 0.0 < epsilon < math.inf:
+        raise ValueError(f"epsilon must be finite and > 0, got {epsilon}")
+    if not 0.0 < delta < 1.0:
+        raise ValueError(f"delta must be in (0, 1), got {delta}")
     if num_attributes < 1 or depth < 1:
         raise ValueError("num_attributes and depth must be >= 1.")
+    for name, fraction in (
+        ("open_fraction", open_fraction),
+        ("delta_tax_fraction", delta_tax_fraction),
+        ("aim_fraction", aim_fraction),
+    ):
+        if not 0.0 < fraction < 1.0:
+            raise ValueError(f"{name} must be in (0, 1), got {fraction}")
+    if budget_mode not in ("tight", "loose"):
+        raise ValueError(f"budget_mode must be 'tight' or 'loose', got {budget_mode!r}")
     delta_tax = delta * delta_tax_fraction
-    delta_bar = (delta - delta_tax) / (1.0 - delta_tax)
-    rho_total = cdp_rho(epsilon, delta_bar)
+    delta_conversion = delta - delta_tax
+    if budget_mode == "tight":
+        delta_conversion /= 1.0 - delta_tax
+    rho_total = cdp_rho(epsilon, delta_conversion)
     rho_aim = aim_fraction * rho_total
     rho_tax = rho_total - rho_aim
     steps = num_attributes * depth
@@ -262,5 +289,7 @@ def ship_budget(
         tau_open=gaussian_threshold(sigma_open, delta_step),
         tau_close=tau_close,
         open_fraction=open_fraction,
+        budget_mode=budget_mode,
+        delta_conversion=delta_conversion,
     )
 

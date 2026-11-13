@@ -23,6 +23,7 @@ cache/
 .coverage
 implement/
 htmlcov/
+tests/
 
 # ---- Run outputs / logs ----
 outputs/

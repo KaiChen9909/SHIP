@@ -14,6 +14,6 @@ Here are the guidelines:
 6. **Direct Semantic Derivability:** Propose features that are direct summaries of an individual record's content. Even though some queries may require complex cross-record analysis, this aggregation should not be baked into a single-record feature.
 7. **Assume Features Exist:** Do not add instructions for handling missing data in the attribute description itself.
 8. **Atomic Features AND Atomic Categories:** Each proposed feature must be atomic, representing a single orthogonal dimension of variation. Every category value along this attribute must be a mutually exclusive point on one single axis. Reject any feature whose categories bundle multiple independent properties into one label; split compound axes into separate orthogonal attributes.
-9. **Granularity Example Path (`example_path`):** For each attribute, also provide one illustrative {{ max_depth }}-level hierarchical path formatted strictly as `"<level_1_example> (level 1) > <level_2_example> (level 2) > <level_3_example> (level 3)"` (matching {{ max_depth }} levels in lowercase English) demonstrating ideal macro-to-specific granularity.
 
-Return a JSON array of objects with fields `"name"` (snake_case), `"description"`, and `"example_path"`.
+Hierarchy examples will be generated separately after the attributes are determined.
+Return a JSON array of objects with exactly two fields: `"name"` (snake_case) and `"description"`.

@@ -9,9 +9,11 @@ Template variables of `attribute_determination.txt`:
     max_depth            int  - taxonomy depth d
 The output is constrained to `ATTRIBUTE_SCHEMA`.
 
-Attribute files (`--attributes`) may be a JSON list of {"name", "description", "example_path"?}
-or {"domain_annotations": {name: {"description": ...}, ...}}. Missing `example_path`s are filled
-by `hydrate_example_paths` (prompt `sample_path.txt`) when `cfg.auto_example_path` is set.
+Attribute inputs (`--attributes` or workload analysis) only need names and descriptions.
+Files may be a JSON list of {"name", "description"} or
+{"domain_annotations": {name: {"description": ...}, ...}}. By default,
+`hydrate_example_paths` generates the hierarchy examples separately with the taxonomy
+model, one level per call (prompt `sample_path.txt`), using public information only.
 """
 
 from __future__ import annotations
@@ -19,6 +21,7 @@ from __future__ import annotations
 import json
 import logging
 import re
+from typing import Any
 
 from utils.io import render_prompt
 from utils.llm import GeminiClient
@@ -34,16 +37,15 @@ ATTRIBUTE_SCHEMA = {
         "properties": {
             "name": {"type": "string"},
             "description": {"type": "string"},
-            "example_path": {"type": "string"},
         },
         "required": ["name", "description"],
     },
 }
 
-SAMPLE_PATH_SCHEMA = {
+SAMPLE_PATH_LEVEL_SCHEMA = {
     "type": "object",
-    "properties": {"levels": {"type": "array", "items": {"type": "string"}}},
-    "required": ["levels"],
+    "properties": {"category": {"type": "string"}},
+    "required": ["category"],
 }
 
 
@@ -76,34 +78,52 @@ def parse_attributes(obj) -> list[Attribute]:
 
 
 def generate_sample_path(llm: GeminiClient, attr: Attribute, dataset_description: str, cfg: SHIPConfig) -> str:
-    """Public multi-level granularity example: 'a (level 1) > b (level 2) > c (level 3)'."""
-    prompt = render_prompt(
-        prompt_path("sample_path.txt"),
-        dataset_description=dataset_description,
-        annotation_name=attr.name,
-        description=attr.description,
-        max_depth=cfg.depth,
-    )
-    try:
-        obj = llm.generate_json(
-            prompt,
-            cfg.taxonomy_model,
-            schema=SAMPLE_PATH_SCHEMA,
-            temperature=cfg.temperature,
-            thinking_budget=cfg.thinking_budget,
-            validator=lambda o: isinstance(o, dict) and isinstance(o.get("levels"), list),
+    """Generate one public example path sequentially, requesting one category per level."""
+    levels: list[str] = []
+
+    def valid_category(obj: Any) -> bool:
+        if not isinstance(obj, dict) or not isinstance(obj.get("category"), str):
+            return False
+        category = obj["category"].strip().lower()
+        return (
+            bool(category)
+            and category not in levels
+            and category not in {"none", "other", "unspecified", "not applicable", "miscellaneous", "n/a"}
+            and not any(separator in category for separator in (">", "\n", "\r"))
         )
-        levels = [str(x).strip().lower() for x in obj["levels"][: cfg.depth] if str(x).strip()]
+
+    try:
+        for current_level in range(1, cfg.depth + 1):
+            parent_path = " > ".join(f"{name} (level {i + 1})" for i, name in enumerate(levels))
+            prompt = render_prompt(
+                prompt_path("sample_path.txt"),
+                dataset_description=dataset_description,
+                annotation_name=attr.name,
+                description=attr.description,
+                max_depth=cfg.depth,
+                current_level=current_level,
+                parent_path=parent_path or "(root: no parent category yet)",
+            )
+            obj = llm.generate_json(
+                prompt,
+                cfg.taxonomy_model,
+                schema=SAMPLE_PATH_LEVEL_SCHEMA,
+                temperature=cfg.temperature,
+                thinking_budget=cfg.thinking_budget,
+                validator=valid_category,
+            )
+            levels.append(obj["category"].strip().lower())
         return " > ".join(f"{lv} (level {k + 1})" for k, lv in enumerate(levels))
     except Exception as e:  # noqa: BLE001
-        logger.warning("Failed to generate a sample path for %s: %s", attr.name, e)
+        logger.warning("Failed to generate a sample path for %s at level %d/%d: %s",
+                       attr.name, len(levels) + 1, cfg.depth, e)
         return ""
 
 
 def hydrate_example_paths(
     llm: GeminiClient, attributes: list[Attribute], dataset_description: str, cfg: SHIPConfig
 ) -> list[Attribute]:
-    """Fill in missing `example_path`s (public information only)."""
+    """Generate missing hierarchy examples with the LLM (enabled by default; public inputs only)."""
     if cfg.auto_example_path:
         for a in attributes:
             if not a.example_path:
@@ -114,7 +134,7 @@ def hydrate_example_paths(
 def determine_attributes(
     llm: GeminiClient, workload: list[str], dataset_description: str, cfg: SHIPConfig
 ) -> list[Attribute]:
-    """Map the workload to the attributes needed to answer it."""
+    """Determine attribute names/descriptions, then generate their hierarchy examples."""
     prompt = render_prompt(
         prompt_path("attribute_determination.txt"),
         workload="\n".join(f"{k + 1}. {q}" for k, q in enumerate(workload)),

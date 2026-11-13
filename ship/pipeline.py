@@ -9,6 +9,8 @@
 
 Privacy (Theorem 1): the release (T, D~) is (eps, delta)-DP with
 rho = rho_tax + rho_aim and delta_bar = (delta - delta_tax) / (1 - delta_tax).
+The default "tight" budget mode uses delta_bar for conversion; "loose" uses
+delta - delta_tax, the conservative split from Appendix B.1.
 If `subsample_rate` is set, SHIP runs on a Poisson subsample with the amplified-back
 budget (eps_sub, delta_sub), so the global guarantee is (eps, delta) on the full corpus.
 """
@@ -86,15 +88,20 @@ class SHIP:
             raise ValueError(f"epsilon must be a finite positive number, got {cfg.epsilon}")
         delta = cfg.delta if cfg.delta is not None else default_delta(n_full)
         eps_run, delta_run = cfg.epsilon, delta
+
+        # if subsampling is used, compute the amplified-back budget for the run.
         if cfg.subsample_rate is not None and cfg.subsample_rate < 1.0:
             eps_run, delta_run = subsample_budget(cfg.epsilon, delta, cfg.subsample_rate)
+
         budget = ship_budget(
             eps_run, delta_run, num_attributes, cfg.depth, tau_close=cfg.tau_close,
             open_fraction=cfg.open_fraction, delta_tax_fraction=cfg.delta_tax_fraction,
             aim_fraction=cfg.aim_fraction,
+            budget_mode=cfg.budget_mode,
         )
         budget.global_epsilon, budget.global_delta = cfg.epsilon, delta
         budget.subsample_rate = cfg.subsample_rate
+
         # Sanity check of Theorem 1 on the run-level budget.
         achieved = approx_cdp_eps(budget.rho_tax + budget.rho_aim, delta_run, budget.delta_tax)
         assert achieved <= eps_run * (1 + 1e-6), (achieved, eps_run)
