@@ -111,3 +111,10 @@ only read the released files of the directory it evaluates (`synthetic.csv`, `ta
 `category_tree.json`, ...); `private_DO_NOT_RELEASE/` is blocked. The sandbox is a guard for a
 cooperative model, not a security boundary. Reports are written to the target directory unless
 `--output` is given.
+
+## Relationship to the Paper
+
+This release preserves the overall structure of SHIP described in the paper, including
+workload analysis, hierarchical DP taxonomy construction, and private tabular synthesis.
+Some implementation details differ slightly from the version used in the paper,
+primarily in API usage, model invocation, and response handling.
